@@ -1,0 +1,12 @@
+{application, codd,
+ [
+  {description, "DB orm, named in honor of E.F.Codd"},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { codd_app, []}},
+  {env, []}
+ ]}.

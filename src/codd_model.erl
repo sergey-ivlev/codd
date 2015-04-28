@@ -10,7 +10,7 @@
 -compile({parse_transform, do}).
 
 -author("isergey").
--include("../../../include/print.hrl").
+
 %% API
 -export([new/1, new/2]).
 -export([meta/0, meta/1, meta/2]).
@@ -298,11 +298,11 @@ get(Connection, Module, GetFields) ->
 
 find(Module, FindCondition) ->
     find(Module, FindCondition, #{}).
+find(Connection, Module, FindCondition) when is_pid(Connection) ->
+    find(Connection, Module, FindCondition, #{});
 find(Module, FindCondition, Opts) ->
     Driver = Module:driver(),
-    Driver:find(Module, FindCondition, Opts);
-find(Connection, Module, FindCondition) when is_pid(Connection) ->
-    find(Connection, Module, FindCondition, #{}).
+    Driver:find(Module, FindCondition, Opts).
 find(Connection, Module, FindCondition, Opts) ->
     Driver = Module:driver(),
     Driver:find(Connection, Module, FindCondition, Opts).

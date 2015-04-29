@@ -167,22 +167,27 @@ from_list(List, Opts, Model) ->
     end.
 
 from_ext_list(List, Opts, {Module, _, _} = Model) ->
-    Fun = fun({Key,Value}, {AccModel, Errors}) ->
-        case Module:is_rw(Key) of
-            true ->
-                case set(Key, Value, AccModel) of
-                    {error, Error} ->
-                        {AccModel, [Error | Errors]};
-                    {ok, NewModel} ->
-                        {NewModel, Errors}
+    Fun = fun({BinKey,Value}, {AccModel, Errors}) ->
+        case bin_to_key(Module, BinKey) of
+            {ok, Key} ->
+                case Module:is_rw(Key) of
+                    true ->
+                        case set(Key, Value, AccModel) of
+                            {error, Error} ->
+                                {AccModel, [Error | Errors]};
+                            {ok, NewModel} ->
+                                {NewModel, Errors}
+                        end;
+                    false ->
+                        case maps:find(ignore_unknown, Opts) of
+                            {ok, true} ->
+                                {AccModel, Errors};
+                            _ ->
+                                {AccModel, [codd_error:unknown_error(Key) | Errors]}
+                        end
                 end;
-            false ->
-                case maps:find(ignore_unknown, Opts) of
-                    {ok, true} ->
-                        {AccModel, Errors};
-                    _ ->
-                        {AccModel, [codd_error:unknown_error(Key) | Errors]}
-                end
+            {error, Error} ->
+                {AccModel, [Error | Errors]}
         end
     end,
     case lists:foldl(Fun, {Model, []}, List) of
@@ -210,22 +215,27 @@ from_map(Map, Opts, Model) ->
     end.
 
 from_ext_map(ExtMap, Opts, {Module, _, _} = Model) ->
-    Fun = fun(Key,Value, {AccModel, Errors}) ->
-        case Module:is_rw(Key) of
-            true ->
-                case set(Key, Value, AccModel) of
-                    {error, Error} ->
-                        {AccModel, [Error | Errors]};
-                    {ok, NewModel} ->
-                        {NewModel, Errors}
+    Fun = fun(BinKey,Value, {AccModel, Errors}) ->
+        case bin_to_key(Module, BinKey) of
+            {ok, Key} ->
+                case Module:is_rw(Key) of
+                    true ->
+                        case set(Key, Value, AccModel) of
+                            {error, Error} ->
+                                {AccModel, [Error | Errors]};
+                            {ok, NewModel} ->
+                                {NewModel, Errors}
+                        end;
+                    false ->
+                        case maps:find(ignore_unknown, Opts) of
+                            {ok, true} ->
+                                {AccModel, Errors};
+                            _ ->
+                                {AccModel, [codd_error:unknown_error(Key) | Errors]}
+                        end
                 end;
-            false ->
-                case maps:find(ignore_unknown, Opts) of
-                    {ok, true} ->
-                        {AccModel, Errors};
-                    _ ->
-                        {AccModel, [codd_error:unknown_error(Key) | Errors]}
-                end
+            {error, Error} ->
+                {AccModel, [Error | Errors]}
         end
     end,
     case maps:fold(Fun, {Model, []}, ExtMap) of
@@ -235,23 +245,27 @@ from_ext_map(ExtMap, Opts, {Module, _, _} = Model) ->
 
 from_db(DBKVList, _Opts, {Module, Meta, Data}) ->
     Fun = fun({BinKey,Value}, {AccModel, Errors}) ->
-        Key = Module:bin_to_key(BinKey),
-        case Module:is_db(Key) of
-            true ->
-                case find_alias(Module, Key, Value) of
-                    {ok, {SourceValue, AliasValue}} ->
-                        case Module:is_valid(Key, SourceValue) of
-                            true ->
-                                AccModel2 = maps:update(Key, AliasValue, AccModel),
-                                {AccModel2, Errors};
-                            false ->
-                                {AccModel, [codd_error:unvalid_error(Key, Value) | Errors]}
+        case bin_to_key(Module, BinKey) of
+            {ok, Key} ->
+                case Module:is_db(Key) of
+                    true ->
+                        case find_alias(Module, Key, Value) of
+                            {ok, {SourceValue, AliasValue}} ->
+                                case Module:is_valid(Key, SourceValue) of
+                                    true ->
+                                        AccModel2 = maps:update(Key, AliasValue, AccModel),
+                                        {AccModel2, Errors};
+                                    false ->
+                                        {AccModel, [codd_error:unvalid_error(Key, Value) | Errors]}
+                                end;
+                            {error, Reason} ->
+                                {AccModel, [Reason | Errors]}
                         end;
-                    {error, Reason} ->
-                        {AccModel, [Reason | Errors]}
+                    false ->
+                        {AccModel, [codd_error:unknown_error(Key) | Errors]}
                 end;
-            false ->
-                {AccModel, [codd_error:unknown_error(Key) | Errors]}
+            {error, Reason} ->
+                {AccModel, [Reason | Errors]}
         end
     end,
     case lists:foldl(Fun, {Data, []}, DBKVList) of
@@ -377,4 +391,13 @@ find_alias(Module, Key, Value) ->
             find_alias(Module, AliasKey, Value);
         _ ->
             {error, codd_error:alias_error(Key, Value)}
+    end.
+
+bin_to_key(Module, BinKey) ->
+    try
+        Key = Module:bin_to_key(BinKey),
+        {ok, Key}
+    catch
+        error:_  ->
+            codd_error:unknown_error(BinKey)
     end.

@@ -9,11 +9,11 @@
 -author("isergey").
 -export([new/0, to_proplist/1, to_ext_proplist/1, to_ext_map/1, to_map/1, to_map/2]).
 
--export([from_list/1,       from_list/2,        from_list/3]).
--export([from_ext_list/1,   from_ext_list/2,    from_ext_list/3]).
--export([from_map/1,        from_map/2,         from_map/3]).
--export([from_ext_map/1,    from_ext_map/2,     from_ext_map/3]).
--export([from_db/1,         from_db/2,          from_db/3]).
+-export([from_proplist/1,       from_proplist/2,        from_proplist/3]).
+-export([from_ext_proplist/1,   from_ext_proplist/2,    from_ext_proplist/3]).
+-export([from_map/1,            from_map/2,             from_map/3]).
+-export([from_ext_map/1,        from_ext_map/2,         from_ext_map/3]).
+-export([from_db/1,             from_db/2,              from_db/3]).
 
 -export([db_table/1, driver/1]).
 
@@ -46,23 +46,23 @@ is_changed(Key, Model) ->
 %% all values, different from atom true, disabled option
 %% @end
 %% --------------------------------------
-from_list(List) ->
-    from_list(List, new()).
-from_list(List, {?MODULE, Meta, Data}) ->
-    from_list(List, #{}, {?MODULE, Meta, Data});
-from_list(List, Opts) ->
-    from_list(List, Opts, new()).
-from_list(List, Opts, {?MODULE, Meta, Data}) ->
-    codd_model:from_list(List, Opts, {?MODULE, Meta, Data}).
+from_proplist(List) ->
+    from_proplist(List, new()).
+from_proplist(List, {?MODULE, Meta, Data}) ->
+    from_proplist(List, #{}, {?MODULE, Meta, Data});
+from_proplist(List, Opts) ->
+    from_proplist(List, Opts, new()).
+from_proplist(List, Opts, {?MODULE, Meta, Data}) ->
+    codd_model:from_proplist(List, Opts, {?MODULE, Meta, Data}).
 
-from_ext_list(List) ->
-    from_ext_list(List, new()).
-from_ext_list(List, {?MODULE, Meta, Data}) ->
-    from_ext_list(List, #{}, {?MODULE, Meta, Data});
-from_ext_list(List, Opts) ->
-    from_ext_list(List, Opts, new()).
-from_ext_list(List, Opts, {?MODULE, Meta, Data}) ->
-    codd_model:from_ext_list(List, Opts, {?MODULE, Meta, Data}).
+from_ext_proplist(List) ->
+    from_ext_proplist(List, new()).
+from_ext_proplist(List, {?MODULE, Meta, Data}) ->
+    from_ext_proplist(List, #{}, {?MODULE, Meta, Data});
+from_ext_proplist(List, Opts) ->
+    from_ext_proplist(List, Opts, new()).
+from_ext_proplist(List, Opts, {?MODULE, Meta, Data}) ->
+    codd_model:from_ext_proplist(List, Opts, {?MODULE, Meta, Data}).
 
 
 from_map(ExtMap) ->

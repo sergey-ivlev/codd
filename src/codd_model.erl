@@ -17,7 +17,7 @@
 -export([changed_fields/1, is_from_db/1]).
 -export([is_changed/2]).
 -export([set/3, fields/2, value/2]).
--export([from_list/3, from_ext_list/3]).
+-export([from_proplist/3, from_ext_proplist/3]).
 -export([from_map/3, from_ext_map/3]).
 -export([from_db/3]).
 -export([to_ext_map/1, to_map/1, to_map/2]).
@@ -147,7 +147,7 @@ set(Key, Value,  {Module, Meta, Data}) ->
             {error, Reason}
     end.
 
-from_list(List, Opts, Model) ->
+from_proplist(List, Opts, Model) ->
     Fun = fun({Key,Value}, {AccModel, Errors}) ->
                case set(Key, Value, AccModel) of
                    {ok, NewModel} ->
@@ -166,7 +166,7 @@ from_list(List, Opts, Model) ->
         {_, Errors} -> {error, Errors}
     end.
 
-from_ext_list(List, Opts, {Module, _, _} = Model) ->
+from_ext_proplist(List, Opts, {Module, _, _} = Model) ->
     Fun = fun({BinKey,Value}, {AccModel, Errors}) ->
         case bin_to_key(Module, BinKey) of
             {ok, Key} ->
@@ -243,7 +243,7 @@ from_ext_map(ExtMap, Opts, {Module, _, _} = Model) ->
         {_, Errors} -> {error, Errors}
     end.
 
-from_db(DBKVList, _Opts, {Module, Meta, Data}) ->
+from_db(DBPropList, _Opts, {Module, Meta, Data}) ->
     Fun = fun({BinKey,Value}, {AccModel, Errors}) ->
         case bin_to_key(Module, BinKey) of
             {ok, Key} ->
@@ -268,7 +268,7 @@ from_db(DBKVList, _Opts, {Module, Meta, Data}) ->
                 {AccModel, [Reason | Errors]}
         end
     end,
-    case lists:foldl(Fun, {Data, []}, DBKVList) of
+    case lists:foldl(Fun, {Data, []}, DBPropList) of
         {Data2, []} -> {ok, {Module, Meta, Data2}};
         {_, Errors} -> {error, Errors}
     end.

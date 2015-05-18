@@ -7,6 +7,8 @@
 %%% Created : 23. Mar 2015 11:57 AM
 %%%-------------------------------------------------------------------
 -author("isergey").
+-behaviour(codd_model).
+
 -export([new/0, to_proplist/1, to_ext_proplist/1, to_ext_map/1, to_map/1, to_map/2]).
 
 -export([from_proplist/1,       from_proplist/2,        from_proplist/3]).
@@ -19,6 +21,7 @@
 
 -export([set/3, value/2, fields/2]).
 -export([is_changed/2]).
+
 
 %% @doc make new mpdel
 new() ->

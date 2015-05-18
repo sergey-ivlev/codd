@@ -7,10 +7,11 @@
 %%% Created : 23. Apr 2015 7:04 AM
 %%%-------------------------------------------------------------------
 -module(codd_empty_model).
+
 -author("isergey").
 
 -export([def_kv/0]).
--export([is_primary/1, is_ro/1, is_rw/1, is_db/1, is_required/1]).
+-export([is_primary/1, is_r/1, is_w/1, is_db/1, is_required/1]).
 -export([is_valid/2]).
 -export([bin_to_key/1]).
 -export([type/1]).
@@ -41,11 +42,11 @@ is_primary(id) -> true;
 is_primary(_) -> false.
 
 %% --- user read only key ---
-is_ro(id) -> true;
-is_ro(_) -> false.
+is_r(id) -> true;
+is_r(_) -> false.
 
 %% ---- user write key ------
-is_rw(_) -> false.
+is_w(_) -> false.
 
 is_required(advertiser_id) -> true;
 is_required(_) -> false.

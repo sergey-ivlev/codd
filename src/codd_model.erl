@@ -31,6 +31,54 @@
 -export([delete/1, delete/2]).
 -export([db_keys/1]).
 
+%% --------------------------------------
+%% ------- callbacks --------------------
+%% --------------------------------------
+-callback def_kv() ->
+    #{Key :: atom() => DefaultValue :: any()}.
+
+-callback bin_to_key(BinKey :: binary()) ->
+    Key :: atom().
+
+-callback alias(Key :: atom()) ->
+    AliasKey :: atom() |
+    {AliasModule :: module(), AliasKey :: atom()}.
+
+-callback is_db(Key :: atom()) ->
+    DBFlag :: boolean().
+
+-callback is_primary(Key :: atom()) ->
+    PrimaryKeyFlag :: boolean().
+
+-callback is_required(Key :: atom()) ->
+    RequiredFlag :: boolean().
+
+-callback is_r(Key :: atom()) ->
+    UserReadFlag :: boolean().
+
+-callback is_w(Key :: atom()) ->
+    UserWriteFlag :: boolean().
+
+-callback is_valid(Key :: atom(), Value :: any()) ->
+    ValidFlag :: boolean().
+
+-callback type(Key :: atom()) ->
+    smallint | int2 | integer | int4 |bigint | int8 |
+    real | float | float4 | float8 |
+    string | text | varchar | binary |
+    date | datetime |
+    boolean | bool |
+    list.
+
+-callback db_table() ->
+    Table :: binary().
+
+-callback driver() ->
+    StorageDriver :: atom().
+
+%% --------------------------------------
+%% ------- API --------------------------
+%% --------------------------------------
 new(Module)->
     new(Module, #{}).
 new(Module, Opts)->
@@ -170,7 +218,7 @@ from_ext_proplist(List, Opts, {Module, _, _} = Model) ->
     Fun = fun({BinKey,Value}, {AccModel, Errors}) ->
         case bin_to_key(Module, BinKey) of
             {ok, Key} ->
-                case Module:is_rw(Key) of
+                case Module:is_w(Key) of
                     true ->
                         case set(Key, Value, AccModel) of
                             {error, Error} ->
@@ -218,7 +266,7 @@ from_ext_map(ExtMap, Opts, {Module, _, _} = Model) ->
     Fun = fun(BinKey,Value, {AccModel, Errors}) ->
         case bin_to_key(Module, BinKey) of
             {ok, Key} ->
-                case Module:is_rw(Key) of
+                case Module:is_w(Key) of
                     true ->
                         case set(Key, Value, AccModel) of
                             {error, Error} ->
@@ -283,7 +331,7 @@ fields(Key, Model) ->
 
 to_ext_map(Model) ->
     Model2 = without_alias(Model),
-    to_map(is_ro, Model2).
+    to_map(is_r, Model2).
 
 to_map({_, _, Data})->
     Data.

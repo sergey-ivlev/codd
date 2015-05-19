@@ -447,5 +447,5 @@ bin_to_key(Module, BinKey) ->
         {ok, Key}
     catch
         error:_  ->
-            codd_error:unknown_error(BinKey)
+            {error, codd_error:unknown_error(BinKey)}
     end.

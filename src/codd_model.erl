@@ -231,7 +231,7 @@ from_ext_proplist(List, Opts, {Module, _, _} = Model) ->
                             {ok, true} ->
                                 {AccModel, Errors};
                             _ ->
-                                {AccModel, [codd_error:unknown_error(Key) | Errors]}
+                                {AccModel, [codd_error:unknown_error(BinKey) | Errors]}
                         end
                 end;
             {error, Error} ->
@@ -279,7 +279,7 @@ from_ext_map(ExtMap, Opts, {Module, _, _} = Model) ->
                             {ok, true} ->
                                 {AccModel, Errors};
                             _ ->
-                                {AccModel, [codd_error:unknown_error(Key) | Errors]}
+                                {AccModel, [codd_error:unknown_error(BinKey) | Errors]}
                         end
                 end;
             {error, Error} ->
@@ -304,13 +304,13 @@ from_db(DBPropList, _Opts, {Module, Meta, Data}) ->
                                         AccModel2 = maps:update(Key, AliasValue, AccModel),
                                         {AccModel2, Errors};
                                     false ->
-                                        {AccModel, [codd_error:unvalid_error(Key, Value) | Errors]}
+                                        {AccModel, [codd_error:unvalid_error(BinKey, Value) | Errors]}
                                 end;
                             {error, Reason} ->
                                 {AccModel, [Reason | Errors]}
                         end;
                     false ->
-                        {AccModel, [codd_error:unknown_error(Key) | Errors]}
+                        {AccModel, [codd_error:unknown_error(BinKey) | Errors]}
                 end;
             {error, Reason} ->
                 {AccModel, [Reason | Errors]}

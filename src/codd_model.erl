@@ -301,7 +301,8 @@ from_db(DBPropList, _Opts, {Module, Meta, Data}) ->
                             {ok, {SourceValue, AliasValue}} ->
                                 case Module:is_valid(Key, SourceValue) of
                                     true ->
-                                        AccModel2 = maps:update(Key, AliasValue, AccModel),
+                                        RoundVal = round_datetime(AliasValue),
+                                        AccModel2 = maps:update(Key, RoundVal, AccModel),
                                         {AccModel2, Errors};
                                     false ->
                                         {AccModel, [codd_error:unvalid_error(BinKey, Value) | Errors]}
@@ -320,6 +321,11 @@ from_db(DBPropList, _Opts, {Module, Meta, Data}) ->
         {Data2, []} -> {ok, {Module, Meta, Data2}};
         {_, Errors} -> {error, Errors}
     end.
+
+%% fix postgres ISO 8601 datatime storing with floating seconds
+round_datetime({{Y,M,D},{H,Min,S}}) ->
+    {{Y,M,D},{H,Min,round(S)}};
+round_datetime(Data) -> Data.
 
 value(Key, {_, _, Data}) ->
     maps:get(Key, Data).

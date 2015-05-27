@@ -12,7 +12,6 @@
 
 -export([def_kv/0]).
 -export([is_primary/1, is_r/1, is_w/1, is_db/1, is_required/1]).
--export([is_valid/2]).
 -export([bin_to_key/1]).
 -export([type/1]).
 
@@ -54,10 +53,6 @@ is_required(_) -> false.
 %%% -----------------------------
 %%% ----- KEY MANIPULATION-------
 %%% -----------------------------
-is_valid(id, Val) when is_integer(Val) -> true;
-is_valid(_, null) -> true;
-is_valid(_, _) -> false.
-
 % default type is integer
 type(_) -> integer.
 

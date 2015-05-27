@@ -8,7 +8,6 @@
 %%%-------------------------------------------------------------------
 -module(codd_model).
 -compile({parse_transform, do}).
-
 -author("isergey").
 
 %% API
@@ -59,16 +58,13 @@
 -callback is_w(Key :: atom()) ->
     UserWriteFlag :: boolean().
 
--callback is_valid(Key :: atom(), Value :: any()) ->
-    ValidFlag :: boolean().
-
 -callback type(Key :: atom()) ->
     smallint | int2 | integer | int4 |bigint | int8 |
     real | float | float4 | float8 |
     string | text | varchar | binary |
     date | datetime |
     boolean | bool |
-    list.
+    list | {list, integer}.
 
 -callback db_table() ->
     Table :: binary().
@@ -98,18 +94,16 @@ data(Module) ->
             _ ->
                 case find_alias(Module, Key, Value) of
                     {ok, {SourceValue, AliasValue}} ->
-                        case Module:is_valid(Key, SourceValue) of
-                            true ->
+                        case codd_typecast:typecast(Module, Key, SourceValue) of
+                            {ok, _} ->
                                 NewData = maps:put(Key, AliasValue, AccData),
                                 {NewData, Errors};
-                            false ->
-                                {AccData, [codd_error:unvalid_error(Key,Value) | Errors]}
+                            {error, Reason} ->
+                                {AccData, [{error, Reason} | Errors]}
                         end;
                     {error, Reason} ->
                         {AccData, [Reason | Errors]}
                 end
-
-
         end
     end,
     case maps:fold(Fun, {#{}, []}, DefData) of
@@ -171,29 +165,26 @@ is_changed(Field, Model) ->
 %% --------------------------------------
 %% ------- set api ----------------------
 %% --------------------------------------
-set(Key, Value,  {Module, Meta, Data}) ->
-    case find_alias(Module, Key, Value) of
-        {ok, {SourceValue, AliasValue}} ->
-            case Module:is_valid(Key, SourceValue) of
-                true ->
-                    case maps:find(Key, Data) of
-                        {ok, SourceValue} ->
-                            {ok, {Module, Meta, Data}};
-                        {ok, _} ->
-                            Data2 = maps:update(Key, AliasValue, Data),
-                            CF = maps:get(changed_fields, Meta),
-                            NewCF = maps:put(Key, AliasValue, CF),
-                            Meta2 = maps:put(changed_fields, NewCF, Meta),
-                            {ok, {Module, Meta2, Data2}};
-                        _ ->
-                            {ok, {Module, Meta, Data}}
-                    end;
-                false ->
-                    {error, codd_error:unvalid_error(Key, Value)}
-            end;
-        {error, Reason} ->
-            {error, Reason}
-    end.
+set(Key, Value, {Module, _Meta, _Data} = Model) ->
+    do([error_m ||
+        CurValue <- check_key(Key, Model),
+        TypeCastValue <- codd_typecast:typecast(Module, Key, Value),
+        {_, AliasValue} <- find_alias(Module, Key, TypeCastValue),
+        case AliasValue of
+            CurValue ->
+                return(Model);
+            NewValue ->
+                Model2 = update_model(Key, NewValue, Model),
+                return(Model2)
+        end
+    ]).
+
+update_model(Key, Value, {Module, Meta, Data}) ->
+    Data2 = maps:update(Key, Value, Data),
+    CF = maps:get(changed_fields, Meta),
+    NewCF = maps:put(Key, Value, CF),
+    Meta2 = maps:put(changed_fields, NewCF, Meta),
+    {Module, Meta2, Data2}.
 
 from_proplist(List, Opts, Model) ->
     Fun = fun({Key,Value}, {AccModel, Errors}) ->
@@ -297,15 +288,15 @@ from_db(DBPropList, _Opts, {Module, Meta, Data}) ->
             {ok, Key} ->
                 case Module:is_db(Key) of
                     true ->
-                        case find_alias(Module, Key, Value) of
-                            {ok, {SourceValue, AliasValue}} ->
-                                case Module:is_valid(Key, SourceValue) of
-                                    true ->
+                        case codd_typecast:typecast(Module, Key, Value) of
+                            {ok, TypeCastVal} ->
+                                case find_alias(Module, Key, TypeCastVal) of
+                                    {ok, {_, AliasValue}} ->
                                         RoundVal = round_datetime(AliasValue),
                                         AccModel2 = maps:update(Key, RoundVal, AccModel),
                                         {AccModel2, Errors};
-                                    false ->
-                                        {AccModel, [codd_error:unvalid_error(BinKey, Value) | Errors]}
+                                    {error, Reason} ->
+                                        {AccModel, [Reason | Errors]}
                                 end;
                             {error, Reason} ->
                                 {AccModel, [Reason | Errors]}
@@ -408,9 +399,9 @@ db_keys(Module) ->
 
 without_alias({Module, #{changed_fields := CF}, Data}) ->
     do([error_m ||
-        NewMeta <- without_alias(Module, CF),
-        NewModel <- without_alias(Module, Data),
-        {Module, NewMeta, NewModel}
+        NewCF <- without_alias(Module, CF),
+        NewData <- without_alias(Module, Data),
+        {Module, #{changed_fields => NewCF}, NewData}
     ]).
 without_alias(Module, Map) ->
     Fun = fun(Key, Value, {AccMap, Errors}) ->
@@ -425,6 +416,14 @@ without_alias(Module, Map) ->
     case maps:fold(Fun, {#{}, []}, Map) of
         {Map2, []} -> {ok, Map2};
         {_, Errors} -> {error, Errors}
+    end.
+
+check_key(Key, {_, _, Data}) ->
+    case maps:find(Key, Data) of
+        {ok, Value} ->
+            {ok, Value};
+        error ->
+            {error, codd_error:unknown_error(Key)}
     end.
 
 find_alias(Module, Key, Value) ->
@@ -455,3 +454,5 @@ bin_to_key(Module, BinKey) ->
         error:_  ->
             {error, codd_error:unknown_error(BinKey)}
     end.
+
+

@@ -24,6 +24,16 @@ typecast(Module, Key, Value) ->
 typecast(_, null) ->
     {ok, null};
 
+typecast(unsigned, Arg) ->
+    case typecast(integer, Arg) of
+        {ok, Int} when Int >= 0 ->
+            {ok, Int};
+        {ok, _} ->
+            {error, bad_arg};
+        {error, Reason} ->
+            {error, Reason}
+    end;
+
 typecast(Type, Arg)  when
     Type =:= smallint;
     Type =:= int2;

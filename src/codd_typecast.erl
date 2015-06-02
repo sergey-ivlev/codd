@@ -24,7 +24,7 @@ typecast(Module, Key, Value) ->
 typecast(_, null) ->
     {ok, null};
 
-typecast(unsigned, Arg) ->
+typecast(non_neg_integer, Arg) ->
     case typecast(integer, Arg) of
         {ok, Int} when Int >= 0 ->
             {ok, Int};

@@ -10,13 +10,13 @@
 -author("isergey").
 
 %% API
--export([unknown_option/1, unvalid_option/2]).
--export([unknown_error/1, unvalid_error/2, required_error/1, alias_error/2]).
+-export([unknown_option/1, unvalid_option/1]).
+-export([unknown_error/1, unvalid_error/1, required_error/1, alias_error/1]).
 
 unknown_option(K) -> {K, option_unknown}.
-unvalid_option(K, V) -> {K, V, not_valid}.
+unvalid_option(K) -> {K, not_valid}.
 
 unknown_error(K) -> {K, unknown}.
-unvalid_error(K, V) -> {K, V, not_valid}.
+unvalid_error(K) -> {K, not_valid}.
 required_error(K) -> {K, required}.
-alias_error(K, V) -> {K, V, bad_alias}.
+alias_error(K) -> {K, bad_alias}.

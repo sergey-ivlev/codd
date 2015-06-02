@@ -10,7 +10,7 @@
 -author("isergey").
 
 %% API
--export([typecast/3, typecast/2]).
+-export([typecast/3]).
 
 typecast(Module, Key, Value) ->
     Type = Module:type(Key),
@@ -18,7 +18,7 @@ typecast(Module, Key, Value) ->
         {ok, TypeCastValue} ->
             {ok, TypeCastValue};
         {error, bad_arg} ->
-            {error, codd_error:unvalid_error(Key, Value)}
+            {error, codd_error:unvalid_error(Key)}
     end.
 
 typecast(_, null) ->

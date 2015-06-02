@@ -124,7 +124,7 @@ meta(Opts, Meta) ->
                         NewAcc = maps:update(K,V,Acc),
                         {NewAcc, Error};
                     false ->
-                        {Acc, [codd_error:unvalid_option(K, V) | Error]}
+                        {Acc, [codd_error:unvalid_option(K) | Error]}
                 end;
             false ->
                 {Acc, [codd_error:unknown_option(K) | Error]}
@@ -436,14 +436,14 @@ find_alias(Module, Key, Value) ->
             FilterLIst = [{V,A} || {V,A} <- List, V =:= Value orelse A =:= Value],
             case FilterLIst of
                 [] ->
-                    {error, codd_error:alias_error(Key, Value)};
+                    {error, codd_error:alias_error(Key)};
                 [AliasPair | _] ->
                     {ok, AliasPair}
             end;
         AliasKey when is_atom(AliasKey) ->
             find_alias(Module, AliasKey, Value);
         _ ->
-            {error, codd_error:alias_error(Key, Value)}
+            {error, codd_error:alias_error(Key)}
     end.
 
 bin_to_key(Module, BinKey) ->

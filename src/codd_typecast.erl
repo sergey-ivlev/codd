@@ -21,6 +21,21 @@ typecast(Module, Key, Value) ->
             {error, codd_error:unvalid_error(Key)}
     end.
 
+typecast(Types, Arg) when is_list(Types) ->
+    F = fun(Type, {Data, Error}) ->
+            case typecast(Type, Data) of
+                {ok, TypeCastValue} ->
+                    {TypeCastValue, Error};
+                {error, _} ->
+                    {Data, bad_arg}
+            end
+        end,
+    Result = lists:foldl(F, {Arg, []}, Types),
+    case Result of
+        {Res, []} -> {ok, Res};
+        {_, Errors} -> {error, Errors}
+    end;
+
 typecast(_, null) ->
     {ok, null};
 
@@ -153,5 +168,17 @@ typecast({list, integer}, Arg) ->
             end;
         _ ->
              {error, bad_arg}
+    end;
+
+typecast({custom, Fun}, Arg) ->
+    try
+        case Fun(Arg) of
+            {ok, Value} -> {ok, Value};
+            _ ->
+                {error, bad_arg}
+        end
+    catch _:_ ->
+        {error, bad_arg}
     end.
+
 

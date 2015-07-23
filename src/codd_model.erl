@@ -28,6 +28,7 @@
 -export([find/2, find/3, find/4]).
 -export([save/1, save/2]).
 -export([delete/1, delete/2]).
+-export([count/2]).
 -export([db_keys/1]).
 
 %% --------------------------------------
@@ -390,6 +391,10 @@ delete({Module, _,_} = Model) ->
 delete(Connection, {Module, _,_} = Model) ->
     Driver = Module:driver(),
     Driver:delete(Connection, Model).
+
+count(Module, FindCondition) ->
+    Driver = Module:driver(),
+    Driver:count(Module, FindCondition).
 
 db_keys({Module, _Meta, Data}) ->
     [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X)];

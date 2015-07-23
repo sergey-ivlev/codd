@@ -10,7 +10,7 @@
 -author("isergey").
 
 %% API
--export([typecast/3]).
+-export([typecast/3, typecast/2]).
 
 typecast(Module, Key, Value) ->
     Type = Module:type(Key),

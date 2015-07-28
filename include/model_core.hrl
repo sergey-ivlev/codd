@@ -10,6 +10,7 @@
 -behaviour(codd_model).
 
 -export([new/0, to_proplist/1, to_ext_proplist/1, to_ext_map/1, to_map/1, to_map/2]).
+-export([is_from_db/1]).
 
 -export([from_proplist/1,       from_proplist/2,        from_proplist/3]).
 -export([from_ext_proplist/1,   from_ext_proplist/2,    from_ext_proplist/3]).
@@ -37,7 +38,8 @@ set(Key, Value, Model) ->
 
 is_changed(Key, Model) ->
     codd_model:is_changed(Key, Model).
-
+is_from_db(Model) ->
+    codd_model:is_from_db(Model).
 %% --------------------------------------
 %% @doc Opts usage
 %% Opts is a map object

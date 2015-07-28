@@ -29,7 +29,8 @@
 -export([save/1, save/2]).
 -export([delete/1, delete/2]).
 -export([count/2]).
--export([db_keys/1]).
+-export([db_keys/1, db_keys/2]).
+
 
 %% --------------------------------------
 %% ------- callbacks --------------------
@@ -46,6 +47,9 @@
 
 -callback is_db(Key :: atom()) ->
     DBFlag :: boolean().
+
+-callback is_prevent_select(Key :: atom()) ->
+    PSFlag :: boolean().
 
 -callback is_primary(Key :: atom()) ->
     PrimaryKeyFlag :: boolean().
@@ -169,9 +173,9 @@ is_changed(Field, Model) ->
 set(Key, Value, {Module, _Meta, _Data} = Model) ->
     do([error_m ||
         CurValue <- check_key(Key, Model),
-        TypeCastValue <- codd_typecast:typecast(Module, Key, Value),
-        {_, AliasValue} <- find_alias(Module, Key, TypeCastValue),
-        case AliasValue of
+        {FindedValue, FindedAliasValue} <- codd_model:find_alias(Module, Key, Value),
+        _TypeCastValue <- codd_typecast:typecast(Module, Key, FindedValue),
+        case FindedAliasValue of
             CurValue ->
                 return(Model);
             NewValue ->
@@ -397,10 +401,17 @@ count(Module, FindCondition) ->
     Driver:count(Module, FindCondition).
 
 db_keys({Module, _Meta, Data}) ->
-    [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X)];
+    [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X), not Module:is_prevent_select(X)];
 db_keys(Module) ->
     Data = Module:def_kv(),
-    [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X)].
+    [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X), not Module:is_prevent_select(X)].
+db_keys(Keys, {Module, _Meta, Data}) ->
+    Data2 = maps:with(Keys, Data),
+    [atom_to_binary(X, latin1) || X <- maps:keys(Data2), Module:is_db(X), not Module:is_prevent_select(X)];
+db_keys(Keys, Module) ->
+    Data = Module:def_kv(),
+    Data2 = maps:with(Keys, Data),
+    [atom_to_binary(X, latin1) || X <- maps:keys(Data2), Module:is_db(X), not Module:is_prevent_select(X)].
 
 without_alias({Module, #{changed_fields := CF}, Data}) ->
     do([error_m ||

@@ -122,17 +122,12 @@ meta(Opts) ->
     meta(Opts, def_meta()).
 meta(Opts, Meta) ->
     Fun = fun(K, V, {Acc, Error}) ->
-        case is_meta_option(K) of
+        case is_meta_option(K,V) of
             true ->
-                case is_valid_meta_option(K,V) of
-                    true ->
-                        NewAcc = maps:update(K,V,Acc),
-                        {NewAcc, Error};
-                    false ->
-                        {Acc, [codd_error:unvalid_option(K) | Error]}
-                end;
+                NewAcc = maps:update(K,V,Acc),
+                {NewAcc, Error};
             false ->
-                {Acc, [codd_error:unknown_option(K) | Error]}
+                {Acc, [codd_error:unvalid_option(K) | Error]}
         end
     end,
     case maps:fold(Fun, {Meta, []}, Opts) of
@@ -140,15 +135,10 @@ meta(Opts, Meta) ->
         {_, Errors} -> {error, Errors}
     end.
 
-
-is_meta_option(from_db) -> true;
-is_meta_option(changed_fields) -> true;
-is_meta_option(_) -> false.
-
-is_valid_meta_option(from_db, true) -> true;
-is_valid_meta_option(from_db, false) -> true;
-is_valid_meta_option(changed_fields, V) when is_map(V) ->  true;
-is_valid_meta_option(_, _) -> false.
+is_meta_option(from_db, true) -> true;
+is_meta_option(from_db, false) -> true;
+is_meta_option(changed_fields, V) when is_map(V) ->  true;
+is_meta_option(_, _) -> false.
 
 def_meta()->
     #{
@@ -184,11 +174,9 @@ set(Key, Value, {Module, _Meta, _Data} = Model) ->
         end
     ]).
 
-update_model(Key, Value, {Module, Meta, Data}) ->
+update_model(Key, Value, {Module, #{changed_fields := CF} = Meta, Data}) ->
     Data2 = maps:update(Key, Value, Data),
-    CF = maps:get(changed_fields, Meta),
-    NewCF = maps:put(Key, Value, CF),
-    Meta2 = maps:put(changed_fields, NewCF, Meta),
+    Meta2 = maps:put(changed_fields, maps:put(Key, Value, CF), Meta),
     {Module, Meta2, Data2}.
 
 from_proplist(List, Opts, Model) ->
@@ -196,13 +184,15 @@ from_proplist(List, Opts, Model) ->
                case set(Key, Value, AccModel) of
                    {ok, NewModel} ->
                        {NewModel, Errors};
-                   {error, Error} ->
+                   {error, {Key, unknown}} ->
                         case maps:find(ignore_unknown, Opts) of
                             {ok, true} ->
                                 {AccModel, Errors};
                             _ ->
-                                {AccModel, [Error | Errors]}
-                        end
+                                {AccModel, [{Key, unknown} | Errors]}
+                        end;
+                   {error, Error} ->
+                       {AccModel, [Error | Errors]}
                 end
     end,
     case lists:foldl(Fun, {Model, []}, List) of
@@ -244,13 +234,15 @@ from_map(Map, Opts, Model) ->
         case set(Key, Value, AccModel) of
             {ok, NewModel} ->
                 {NewModel, Errors};
-            {error, Error} ->
+            {error, {Key, unknown}} ->
                 case maps:find(ignore_unknown, Opts) of
                     {ok, true} ->
                         {AccModel, Errors};
                     _ ->
-                        {AccModel, [Error | Errors]}
-                end
+                        {AccModel, [{Key, unknown} | Errors]}
+                end;
+            {error, Error} ->
+                {AccModel, [Error | Errors]}
         end
     end,
     case maps:fold(Fun, {Model, []}, Map) of

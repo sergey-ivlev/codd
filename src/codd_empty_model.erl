@@ -71,15 +71,15 @@ driver() -> codd_postgres.
 %%% -----------------------------
 
 get(Id) ->
-    codd_model:get(?MODULE, #{id => Id}).
+    codd:get(?MODULE, #{id => Id}).
 
 find(Conditions) ->
-    codd_model:find(?MODULE, Conditions).
+    codd:find(?MODULE, Conditions).
 
 save(Model) ->
-    codd_model:save(Model).
+    codd:save(Model).
 save(Connection, Model) ->
-    codd_model:save(Connection, Model).
+    codd:save(Connection, Model).
 
 delete(Model) ->
-    codd_model:delete(Model).
+    codd:delete(Model).

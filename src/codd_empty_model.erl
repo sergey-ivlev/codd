@@ -64,7 +64,7 @@ type(_) -> integer.
 %%% -----------------------------
 %% use db_table() for default get/save/find/delete generator
 db_table() -> <<"change_db_table_name_here">>.
-driver() -> codd_pg_driver.
+driver() -> codd_postgres.
 
 %%% -----------------------------
 %%% ---------- API --------------

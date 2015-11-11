@@ -230,54 +230,12 @@ from_ext_proplist(List, Opts, {Module, _, _} = Model) ->
     end.
 
 from_map(Map, Opts, Model) ->
-    Fun = fun(Key,Value, {AccModel, Errors}) ->
-        case set(Key, Value, AccModel) of
-            {ok, NewModel} ->
-                {NewModel, Errors};
-            {error, {Key, unknown}} ->
-                case maps:find(ignore_unknown, Opts) of
-                    {ok, true} ->
-                        {AccModel, Errors};
-                    _ ->
-                        {AccModel, [{Key, unknown} | Errors]}
-                end;
-            {error, Error} ->
-                {AccModel, [Error | Errors]}
-        end
-    end,
-    case maps:fold(Fun, {Model, []}, Map) of
-        {Model2, []} -> {ok, Model2};
-        {_, Errors} -> {error, Errors}
-    end.
+    List = maps:to_list(Map),
+    from_proplist(List, Opts, Model).
 
-from_ext_map(ExtMap, Opts, {Module, _, _} = Model) ->
-    Fun = fun(BinKey,Value, {AccModel, Errors}) ->
-        case bin_to_key(Module, BinKey) of
-            {ok, Key} ->
-                case Module:is_w(Key) of
-                    true ->
-                        case set(Key, Value, AccModel) of
-                            {error, Error} ->
-                                {AccModel, [Error | Errors]};
-                            {ok, NewModel} ->
-                                {NewModel, Errors}
-                        end;
-                    false ->
-                        case maps:find(ignore_unknown, Opts) of
-                            {ok, true} ->
-                                {AccModel, Errors};
-                            _ ->
-                                {AccModel, [codd_error:unknown_error(BinKey) | Errors]}
-                        end
-                end;
-            {error, Error} ->
-                {AccModel, [Error | Errors]}
-        end
-    end,
-    case maps:fold(Fun, {Model, []}, ExtMap) of
-        {Model2, []} -> {ok, Model2};
-        {_, Errors} -> {error, Errors}
-    end.
+from_ext_map(Map, Opts, Model) ->
+    List = maps:to_list(Map),
+    from_ext_proplist(List, Opts, Model).
 
 from_db(DBPropList, _Opts, {Module, Meta, Data}) ->
     Fun = fun({BinKey,Value}, {AccModel, Errors}) ->

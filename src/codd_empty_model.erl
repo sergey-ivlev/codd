@@ -16,7 +16,6 @@
 -export([type/1]).
 
 -export([db_table/0, driver/0]).
--export([alias/1]).
 
 -export([get/1, save/1, save/2, delete/1, find/1]).
 
@@ -29,9 +28,6 @@ def_kv() -> #{
 }.
 
 bin_to_key(<<"id">>) -> id.
-
-% in this model alias is not used
-alias(_) -> no.
 
 % all field are from db
 is_db(_) -> true.

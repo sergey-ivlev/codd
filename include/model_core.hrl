@@ -9,14 +9,14 @@
 -author("isergey").
 -behaviour(codd_model).
 
--export([new/0, to_proplist/1, to_ext_proplist/1, to_ext_map/1, to_map/1, to_map/2]).
+-export([new/0, new/1, to_proplist/1, to_ext_proplist/1, to_ext_map/1, to_map/1, to_map/2]).
 -export([is_from_db/1]).
 
 -export([from_proplist/1,       from_proplist/2,        from_proplist/3]).
 -export([from_ext_proplist/1,   from_ext_proplist/2,    from_ext_proplist/3]).
 -export([from_map/1,            from_map/2,             from_map/3]).
 -export([from_ext_map/1,        from_ext_map/2,         from_ext_map/3]).
--export([from_db/1,             from_db/2,              from_db/3]).
+-export([from_db/1,             from_db/2]).
 
 -export([db_table/1, driver/1]).
 
@@ -91,12 +91,8 @@ from_ext_map(ExtMap, Opts, Model) ->
 
 from_db(DBKVList) ->
     from_db(DBKVList, new(#{from_db => true})).
-from_db(DBKVList, {?MODULE, Meta, Map}) ->
-    from_db(DBKVList, #{}, {?MODULE, Meta, Map});
-from_db(DBKVList, Opts) ->
-    from_db(DBKVList, Opts, new(#{from_db => true})).
-from_db(DBKVList, Opts, Model) ->
-    codd_model:from_db(DBKVList, Opts, Model).
+from_db(DBKVList, Model) ->
+    codd_model:from_db(DBKVList, Model).
 
 
 %% --------------------------------------

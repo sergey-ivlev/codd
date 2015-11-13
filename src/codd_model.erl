@@ -19,6 +19,8 @@
 -export([from_proplist/3, from_ext_proplist/3]).
 -export([from_map/3, from_ext_map/3]).
 
+-export([from_db/2]).
+
 -export([to_ext_map/1, to_map/1, to_map/2]).
 -export([to_ext_proplist/1, to_proplist/1]).
 
@@ -86,7 +88,7 @@ data(Module) ->
                 NewData = maps:put(Key, Value, AccData),
                 {NewData, Errors};
             _ ->
-
+                %% check default values
                 case codd_typecast:typecast(Module, Key, Value) of
                     {ok, TypecastValue} ->
                         NewData = maps:put(Key, TypecastValue, AccData),
@@ -213,6 +215,13 @@ from_ext_proplist(List, Opts, {Module, _, _} = Model) ->
         {Data2, []} -> {ok, Data2};
         {_, Errors} -> {error, Errors}
     end.
+
+from_db(List, {Module, Meta, Data}) ->
+    Fun = fun({Key,Value}, Acc) ->
+        maps:update(Key, Value, Acc)
+    end,
+    Data2 = lists:foldl(Fun, Data, List),
+    {ok, {Module, Meta, Data2}}.
 
 from_map(Map, Opts, Model) ->
     List = maps:to_list(Map),

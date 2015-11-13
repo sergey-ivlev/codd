@@ -8,18 +8,20 @@
 %% API functions
 %% ====================================================================
 %% common DB API
--export([get/2, get/3]).
+-export([get/2, get/3, get/4]).
 -export([find/2, find/3, find/4]).
 -export([save/1, save/2]).
 -export([delete/1, delete/2]).
 -export([count/2]).
 
-get(Module, GetFields) when is_atom(Module) and is_map(GetFields) ->
+get(Module, GetFields) ->
+    get(Module, GetFields, #{}).
+get(Module, GetFields, Opts) when is_atom(Module) and is_map(GetFields) ->
     Driver = Module:driver(),
-    Driver:get(Module, GetFields).
-get(Connection, Module, GetFields) ->
+    Driver:get(Module, GetFields, Opts).
+get(Connection, Module, GetFields, Opts) ->
     Driver = Module:driver(),
-    Driver:get(Connection, Module, GetFields).
+    Driver:get(Connection, Module, GetFields, Opts).
 
 find(Module, FindCondition) ->
     find(Module, FindCondition, #{}).

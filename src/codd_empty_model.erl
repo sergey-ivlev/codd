@@ -74,8 +74,8 @@ find(Conditions) ->
 
 save(Model) ->
     codd:save(Model).
-save(Connection, Model) ->
-    codd:save(Connection, Model).
+save(Model, Opts) ->
+    codd:save(Model, Opts).
 
 delete(Model) ->
     codd:delete(Model).

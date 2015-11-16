@@ -8,31 +8,26 @@
 %% API functions
 %% ====================================================================
 %% common DB API
--export([get/2, get/3, get/4]).
--export([find/2, find/3, find/4]).
+-export([get/2, get/3]).
+-export([find/2, find/3]).
 -export([save/1, save/2]).
 -export([delete/1, delete/2]).
--export([count/2]).
+-export([count/2, count/3]).
 
+% Connection, ?MODULE, #{id => Id, is_delete => false}
 get(Module, GetFields) ->
-    get(Module, GetFields, #{}).
-get(Module, GetFields, Opts) when is_atom(Module) and is_map(GetFields) ->
+    Driver = Module:driver(),
+    Driver:get(Module, GetFields).
+get(Module, GetFields, Opts) ->
     Driver = Module:driver(),
     Driver:get(Module, GetFields, Opts).
-get(Connection, Module, GetFields, Opts) ->
-    Driver = Module:driver(),
-    Driver:get(Connection, Module, GetFields, Opts).
 
 find(Module, FindCondition) ->
-    find(Module, FindCondition, #{}).
-find(Connection, Module, FindCondition) when is_pid(Connection) ->
-    find(Connection, Module, FindCondition, #{});
+    Driver = Module:driver(),
+    Driver:find(Module, FindCondition).
 find(Module, FindCondition, Opts) ->
     Driver = Module:driver(),
     Driver:find(Module, FindCondition, Opts).
-find(Connection, Module, FindCondition, Opts) ->
-    Driver = Module:driver(),
-    Driver:find(Connection, Module, FindCondition, Opts).
 
 save(Model)->
     Driver = Model:driver(),
@@ -43,25 +38,28 @@ save(Model)->
             Driver:insert(Model)
     end.
 
-save(Connection, Model) ->
+save(Model, Opts) ->
     Driver = Model:driver(),
     case codd_model:is_from_db(Model) of
         true ->
-            Driver:update(Connection, Model);
+            Driver:update(Model, Opts);
         false ->
-            Driver:insert(Connection, Model)
+            Driver:insert(Model, Opts)
     end.
 
 delete({Module, _,_} = Model) ->
     Driver = Module:driver(),
     Driver:delete(Model).
-delete(Connection, {Module, _,_} = Model) ->
+delete({Module, _,_} = Model, Opts) ->
     Driver = Module:driver(),
-    Driver:delete(Connection, Model).
+    Driver:delete(Model, Opts).
 
 count(Module, FindCondition) ->
     Driver = Module:driver(),
     Driver:count(Module, FindCondition).
+count(Module, FindCondition, Opts) ->
+    Driver = Module:driver(),
+    Driver:count(Module, FindCondition, Opts).
 %% ====================================================================
 %% Internal functions
 %% ====================================================================

@@ -11,7 +11,7 @@
 -author("isergey").
 
 -export([def_kv/0]).
--export([is_primary/1, is_r/1, is_w/1, is_db/1, is_required/1, is_prevent_select/1]).
+-export([is_primary/1, is_r/1, is_w/1, is_db/1, is_required/1]).
 -export([bin_to_key/1]).
 -export([type/1]).
 
@@ -31,9 +31,6 @@ bin_to_key(<<"id">>) -> id.
 
 % all field are from db
 is_db(_) -> true.
-
-% all field autogenerate select
-is_prevent_select(_) -> false.
 
 %% ---- db primary key ------
 is_primary(id) -> true;

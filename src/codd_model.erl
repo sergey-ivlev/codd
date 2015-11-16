@@ -39,9 +39,6 @@
 -callback is_db(Key :: atom()) ->
     DBFlag :: boolean().
 
--callback is_prevent_select(Key :: atom()) ->
-    PSFlag :: boolean().
-
 -callback is_primary(Key :: atom()) ->
     PrimaryKeyFlag :: boolean().
 
@@ -261,17 +258,17 @@ to_proplist({?MODULE, _, Data}) ->
     maps:to_list(Data).
 
 db_keys({Module, _Meta, Data}) ->
-    [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X), not Module:is_prevent_select(X)];
+    [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X)];
 db_keys(Module) ->
     Data = Module:def_kv(),
-    [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X), not Module:is_prevent_select(X)].
+    [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X)].
 db_keys(Keys, {Module, _Meta, Data}) ->
     Data2 = maps:with(Keys, Data),
-    [atom_to_binary(X, latin1) || X <- maps:keys(Data2), Module:is_db(X), not Module:is_prevent_select(X)];
+    [atom_to_binary(X, latin1) || X <- maps:keys(Data2), Module:is_db(X)];
 db_keys(Keys, Module) ->
     Data = Module:def_kv(),
     Data2 = maps:with(Keys, Data),
-    [atom_to_binary(X, latin1) || X <- maps:keys(Data2), Module:is_db(X), not Module:is_prevent_select(X)].
+    [atom_to_binary(X, latin1) || X <- maps:keys(Data2), Module:is_db(X)].
 
 check_key(Key, {_, _, Data}) ->
     case maps:find(Key, Data) of

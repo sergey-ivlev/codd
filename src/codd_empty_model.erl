@@ -12,7 +12,7 @@
 
 -export([def_kv/0]).
 -export([is_primary/1, is_r/1, is_w/1, is_db/1, is_required/1]).
--export([bin_to_key/1]).
+-export([ext_key/1]).
 -export([type/1]).
 
 -export([db_table/0, driver/0]).
@@ -27,7 +27,7 @@ def_kv() -> #{
     id => undefined
 }.
 
-bin_to_key(<<"id">>) -> id.
+ext_key(<<"id">>) -> id.
 
 % all field are from db
 is_db(_) -> true.

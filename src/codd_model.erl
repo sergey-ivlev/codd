@@ -33,7 +33,7 @@
 -callback def_kv() ->
     #{Key :: atom() => DefaultValue :: any()}.
 
--callback bin_to_key(BinKey :: binary()) ->
+-callback ext_key(BinKey :: binary()) ->
     Key :: atom().
 
 -callback is_db(Key :: atom()) ->
@@ -73,8 +73,8 @@ new(Module)->
 new(Module, Opts)->
     do([error_m ||
         Meta <- meta(Opts),
-        Model <- data(Module),
-        {Module, Meta, Model}
+        Data <- data(Module),
+        {Module, Data, Meta}
     ]).
 
 data(Module) ->
@@ -145,7 +145,7 @@ is_changed(Field, Model) ->
 %% --------------------------------------
 %% ------- set api ----------------------
 %% --------------------------------------
-set(Key, Value, {Module, _Meta, _Data} = Model) ->
+set(Key, Value, {Module, _, _} = Model) ->
     do([error_m ||
         CurValue <- check_key(Key, Model),
         TypeCastValue <- codd_typecast:typecast(Module, Key, Value),
@@ -158,12 +158,12 @@ set(Key, Value, {Module, _Meta, _Data} = Model) ->
         end
     ]).
 
-update_model(Key, Value, {Module, #{changed_fields := CF} = Meta, Data}) ->
+update_model(Key, Value, {Module, Data, #{changed_fields := CF} = Meta}) ->
     Data2 = maps:update(Key, Value, Data),
     Meta2 = maps:put(changed_fields, maps:put(Key, Value, CF), Meta),
-    {Module, Meta2, Data2}.
+    {Module, Data2, Meta2}.
 
-from_proplist(List, Opts, Model) ->
+from_proplist(List, Model, Opts) ->
     Fun = fun({Key,Value}, {AccModel, Errors}) ->
                case set(Key, Value, AccModel) of
                    {ok, NewModel} ->
@@ -184,9 +184,9 @@ from_proplist(List, Opts, Model) ->
         {_, Errors} -> {error, Errors}
     end.
 
-from_ext_proplist(List, Opts, {Module, _, _} = Model) ->
+from_ext_proplist(List, {Module, _, _} = Model, Opts) ->
     Fun = fun({BinKey,Value}, {AccModel, Errors}) ->
-        case bin_to_key(Module, BinKey) of
+        case ext_key(BinKey, Module) of
             {ok, Key} ->
                 case Module:is_w(Key) of
                     true ->
@@ -213,25 +213,25 @@ from_ext_proplist(List, Opts, {Module, _, _} = Model) ->
         {_, Errors} -> {error, Errors}
     end.
 
-from_db(List, {Module, Meta, Data}) ->
+from_db(List, {Module, Data, Meta}) ->
     Fun = fun({Key,Value}, Acc) ->
         maps:update(Key, Value, Acc)
     end,
     Data2 = lists:foldl(Fun, Data, List),
-    {ok, {Module, Meta, Data2}}.
+    {ok, {Module, Data2, Meta}}.
 
-from_map(Map, Opts, Model) ->
+from_map(Map, Model, Opts) ->
     List = maps:to_list(Map),
     from_proplist(List, Opts, Model).
 
-from_ext_map(Map, Opts, Model) ->
+from_ext_map(Map, Model, Opts) ->
     List = maps:to_list(Map),
     from_ext_proplist(List, Opts, Model).
 
-value(Key, {_, _, Data}) ->
+value(Key, {_, Data, _}) ->
     maps:get(Key, Data).
 
-fields(Keys, {_, _, Data}) when is_list(Keys) ->
+fields(Keys, {_, Data, _}) when is_list(Keys) ->
     maps:with(Keys, Data);
 fields(Key, Model) ->
     fields([Key], Model).
@@ -239,9 +239,9 @@ fields(Key, Model) ->
 to_ext_map(Model) ->
     to_map(is_r, Model).
 
-to_map({_, _, Data})->
+to_map({_, Data, _})->
     Data.
-to_map(Flag, {Module, _, Data}) ->
+to_map(Flag, {Module, Data, _}) ->
     Fun = fun(K,V, Acc) ->
         case Module:Flag(K) of
             true -> maps:put(K, V, Acc);
@@ -254,15 +254,15 @@ to_ext_proplist(Model) ->
     Map2 = to_ext_map(Model),
     maps:to_list(Map2).
 
-to_proplist({?MODULE, _, Data}) ->
+to_proplist({_, Data, _}) ->
     maps:to_list(Data).
 
-db_keys({Module, _Meta, Data}) ->
+db_keys({Module, Data, _Meta}) ->
     [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X)];
 db_keys(Module) ->
     Data = Module:def_kv(),
     [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X)].
-db_keys(Keys, {Module, _Meta, Data}) ->
+db_keys(Keys, {Module, Data, _Meta}) ->
     Data2 = maps:with(Keys, Data),
     [atom_to_binary(X, latin1) || X <- maps:keys(Data2), Module:is_db(X)];
 db_keys(Keys, Module) ->
@@ -270,7 +270,7 @@ db_keys(Keys, Module) ->
     Data2 = maps:with(Keys, Data),
     [atom_to_binary(X, latin1) || X <- maps:keys(Data2), Module:is_db(X)].
 
-check_key(Key, {_, _, Data}) ->
+check_key(Key, {_, Data, _}) ->
     case maps:find(Key, Data) of
         {ok, Value} ->
             {ok, Value};
@@ -278,9 +278,9 @@ check_key(Key, {_, _, Data}) ->
             {error, codd_error:unknown_error(Key)}
     end.
 
-bin_to_key(Module, BinKey) ->
+ext_key(BinKey, Module) ->
     try
-        Key = Module:bin_to_key(BinKey),
+        Key = Module:ext_key(BinKey),
         {ok, Key}
     catch
         error:_  ->

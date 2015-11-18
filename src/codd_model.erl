@@ -130,9 +130,9 @@ def_meta()->
         from_db => false,
         changed_fields => #{}
     }.
-changed_fields({_, #{changed_fields := CF}, _}) ->
+changed_fields({_, _, #{changed_fields := CF}}) ->
     CF.
-is_from_db({_, #{from_db := FDB}, _}) ->
+is_from_db({_, _, #{from_db := FDB}}) ->
     FDB.
 
 is_changed(Field, Model) ->
@@ -163,18 +163,30 @@ update_model(Key, Value, {Module, Data, #{changed_fields := CF} = Meta}) ->
     Meta2 = maps:put(changed_fields, maps:put(Key, Value, CF), Meta),
     {Module, Data2, Meta2}.
 
-from_proplist(List, Model, Opts) ->
+%% ---------------------------
+%% from_proplist(List, Model, #{ignore_unknown => true})
+%% #{ignore_unknown => true} allow ignore unknown keys
+%% ---------------------------
+from_proplist(List, Model, #{ignore_unknown := true}) ->
     Fun = fun({Key,Value}, {AccModel, Errors}) ->
                case set(Key, Value, AccModel) of
                    {ok, NewModel} ->
                        {NewModel, Errors};
                    {error, {Key, unknown}} ->
-                        case maps:find(ignore_unknown, Opts) of
-                            {ok, true} ->
-                                {AccModel, Errors};
-                            _ ->
-                                {AccModel, [{Key, unknown} | Errors]}
-                        end;
+                       {AccModel, Errors};
+                   {error, Error} ->
+                       {AccModel, [Error | Errors]}
+               end
+    end,
+    case lists:foldl(Fun, {Model, []}, List) of
+        {Data2, []} -> {ok, Data2};
+        {_, Errors} -> {error, Errors}
+    end;
+from_proplist(List, Model, _) ->
+    Fun = fun({Key,Value}, {AccModel, Errors}) ->
+               case set(Key, Value, AccModel) of
+                   {ok, NewModel} ->
+                       {NewModel, Errors};
                    {error, Error} ->
                        {AccModel, [Error | Errors]}
                 end
@@ -184,25 +196,52 @@ from_proplist(List, Model, Opts) ->
         {_, Errors} -> {error, Errors}
     end.
 
-from_ext_proplist(List, {Module, _, _} = Model, Opts) ->
+%% ---------------------------
+%% from_ext_proplist(List, Model, #{ignore_unknown => true})
+%% ignoring:
+%% - undefined bin keys
+%% - trying to write to readonly keys
+%% - undefined model keys
+%% ---------------------------
+from_ext_proplist(List, {Module, _, _} = Model, #{ignore_unknown := true}) ->
     Fun = fun({BinKey,Value}, {AccModel, Errors}) ->
         case ext_key(BinKey, Module) of
             {ok, Key} ->
                 case Module:is_w(Key) of
                     true ->
                         case set(Key, Value, AccModel) of
-                            {error, Error} ->
-                                {AccModel, [Error | Errors]};
                             {ok, NewModel} ->
-                                {NewModel, Errors}
+                                {NewModel, Errors};
+                            {error, {Key, unknown}} ->
+                                {AccModel, Errors};
+                            {error, Error} ->
+                                {AccModel, [Error | Errors]}
                         end;
                     false ->
-                        case maps:find(ignore_unknown, Opts) of
-                            {ok, true} ->
-                                {AccModel, Errors};
-                            _ ->
-                                {AccModel, [codd_error:unknown_error(BinKey) | Errors]}
-                        end
+                        {AccModel, Errors}
+                end;
+            {error, _} ->
+                {AccModel, Errors}
+        end
+    end,
+    case lists:foldl(Fun, {Model, []}, List) of
+        {Data2, []} -> {ok, Data2};
+        {_, Errors} -> {error, Errors}
+    end;
+from_ext_proplist(List, {Module, _, _} = Model, _) ->
+    Fun = fun({BinKey,Value}, {AccModel, Errors}) ->
+        case ext_key(BinKey, Module) of
+            {ok, Key} ->
+                case Module:is_w(Key) of
+                    true ->
+                        case set(Key, Value, AccModel) of
+                            {ok, NewModel} ->
+                                {NewModel, Errors};
+                            {error, Error} ->
+                                {AccModel, [Error | Errors]}
+                        end;
+                    false ->
+                        {AccModel, [codd_error:unknown_error(BinKey) | Errors]}
                 end;
             {error, Error} ->
                 {AccModel, [Error | Errors]}

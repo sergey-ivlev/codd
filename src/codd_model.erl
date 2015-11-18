@@ -30,7 +30,7 @@
 %% --------------------------------------
 %% ------- callbacks --------------------
 %% --------------------------------------
--callback def_kv() ->
+-callback def_keys() ->
     #{Key :: atom() => DefaultValue :: any()}.
 
 -callback ext_key(BinKey :: binary()) ->
@@ -78,7 +78,7 @@ new(Module, Opts)->
     ]).
 
 data(Module) ->
-    DefData = Module:def_kv(),
+    DefData = Module:def_keys(),
     Fun = fun(Key,Value, {AccData, Errors}) ->
         case Value of
             undefined ->
@@ -299,13 +299,13 @@ to_proplist({_, Data, _}) ->
 db_keys({Module, Data, _Meta}) ->
     [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X)];
 db_keys(Module) ->
-    Data = Module:def_kv(),
+    Data = Module:def_keys(),
     [atom_to_binary(X, latin1) || X <- maps:keys(Data), Module:is_db(X)].
 db_keys(Keys, {Module, Data, _Meta}) ->
     Data2 = maps:with(Keys, Data),
     [atom_to_binary(X, latin1) || X <- maps:keys(Data2), Module:is_db(X)];
 db_keys(Keys, Module) ->
-    Data = Module:def_kv(),
+    Data = Module:def_keys(),
     Data2 = maps:with(Keys, Data),
     [atom_to_binary(X, latin1) || X <- maps:keys(Data2), Module:is_db(X)].
 

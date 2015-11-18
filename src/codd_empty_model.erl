@@ -10,7 +10,7 @@
 
 -author("isergey").
 
--export([def_kv/0]).
+-export([def_keys/0]).
 -export([is_primary/1, is_r/1, is_w/1, is_db/1, is_required/1]).
 -export([ext_key/1]).
 -export([type/1]).
@@ -19,11 +19,11 @@
 
 -export([get/1, save/1, save/2, delete/1, find/1]).
 
--include_lib("codd/include/model_core.hrl").
+-include_lib("codd/include/codd_model.hrl").
 %%% -----------------------------
 %%% --------- KEYS --------------
 %%% -----------------------------
-def_kv() -> #{
+def_keys() -> #{
     id => undefined
 }.
 

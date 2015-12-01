@@ -62,8 +62,8 @@
 -callback db_table() ->
     Table :: binary().
 
--callback driver() ->
-    StorageDriver :: atom().
+-callback adapter() ->
+    StorageAdapter :: atom().
 
 %% --------------------------------------
 %% ------- API --------------------------

@@ -15,7 +15,7 @@
 -export([ext_key/1]).
 -export([type/1]).
 
--export([db_table/0, driver/0]).
+-export([db_table/0, adapter/0]).
 
 -export([get/1, save/1, save/2, delete/1, find/1]).
 
@@ -57,7 +57,7 @@ type(_) -> integer.
 %%% -----------------------------
 %% use db_table() for default get/save/find/delete generator
 db_table() -> <<"change_db_table_name_here">>.
-driver() -> codd_postgres.
+adapter() -> codd_postgres.
 
 %%% -----------------------------
 %%% ---------- API --------------

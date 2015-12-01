@@ -123,4 +123,4 @@ to_proplist(Model) ->
 db_table({?MODULE, _Data, _Meta}) ->
     ?MODULE:db_table().
 driver({?MODULE, _Data, _Meta}) ->
-    ?MODULE:driver().
+    ?MODULE:adapter().

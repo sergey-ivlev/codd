@@ -16,50 +16,50 @@
 
 % Connection, ?MODULE, #{id => Id, is_delete => false}
 get(Module, GetFields) ->
-    Driver = Module:driver(),
-    Driver:get(Module, GetFields).
+    Adapter = Module:adapter(),
+    Adapter:get(Module, GetFields).
 get(Module, GetFields, Opts) ->
-    Driver = Module:driver(),
-    Driver:get(Module, GetFields, Opts).
+    Adapter = Module:adapter(),
+    Adapter:get(Module, GetFields, Opts).
 
 find(Module, FindCondition) ->
-    Driver = Module:driver(),
-    Driver:find(Module, FindCondition).
+    Adapter = Module:adapter(),
+    Adapter:find(Module, FindCondition).
 find(Module, FindCondition, Opts) ->
-    Driver = Module:driver(),
-    Driver:find(Module, FindCondition, Opts).
+    Adapter = Module:adapter(),
+    Adapter:find(Module, FindCondition, Opts).
 
 save(Model)->
-    Driver = Model:driver(),
+    Adapter = Model:adapter(),
     case codd_model:is_from_db(Model) of
         true ->
-            Driver:update(Model);
+            Adapter:update(Model);
         false ->
-            Driver:insert(Model)
+            Adapter:insert(Model)
     end.
 
 save(Model, Opts) ->
-    Driver = Model:driver(),
+    Adapter = Model:adapter(),
     case codd_model:is_from_db(Model) of
         true ->
-            Driver:update(Model, Opts);
+            Adapter:update(Model, Opts);
         false ->
-            Driver:insert(Model, Opts)
+            Adapter:insert(Model, Opts)
     end.
 
 delete({Module, _,_} = Model) ->
-    Driver = Module:driver(),
-    Driver:delete(Model).
+    Adapter = Module:adapter(),
+    Adapter:delete(Model).
 delete({Module, _,_} = Model, Opts) ->
-    Driver = Module:driver(),
-    Driver:delete(Model, Opts).
+    Adapter = Module:adapter(),
+    Adapter:delete(Model, Opts).
 
 count(Module, FindCondition) ->
-    Driver = Module:driver(),
-    Driver:count(Module, FindCondition).
+    Adapter = Module:adapter(),
+    Adapter:count(Module, FindCondition).
 count(Module, FindCondition, Opts) ->
-    Driver = Module:driver(),
-    Driver:count(Module, FindCondition, Opts).
+    Adapter = Module:adapter(),
+    Adapter:count(Module, FindCondition, Opts).
 %% ====================================================================
 %% Internal functions
 %% ====================================================================

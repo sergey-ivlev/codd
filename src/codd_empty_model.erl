@@ -29,13 +29,6 @@ def_keys() -> #{
 
 ext_key(<<"id">>) -> id.
 
-% all field are from db
-is_db(_) -> true.
-
-%% ---- db primary key ------
-is_primary(id) -> true;
-is_primary(_) -> false.
-
 %% --- user read only key ---
 is_r(id) -> true;
 is_r(_) -> false.
@@ -43,14 +36,19 @@ is_r(_) -> false.
 %% ---- user write key ------
 is_w(_) -> false.
 
-is_required(advertiser_id) -> true;
+%% ---- required keys ------
 is_required(_) -> false.
 
-%%% -----------------------------
-%%% ----- KEY MANIPULATION-------
-%%% -----------------------------
 % default type is integer
 type(_) -> integer.
+
+%% DB adapter's callback
+%% ---- db fields ------
+is_db(_) -> true.
+
+%% -- db primary key ----
+is_primary(id) -> true;
+is_primary(_) -> false.
 
 %%% -----------------------------
 %%% ----- MODEL INFO-------------

@@ -59,7 +59,7 @@
     boolean | bool |
     list | {list, integer}.
 
--callback db_table() ->
+-callback table() ->
     Table :: binary().
 
 -callback adapter() ->

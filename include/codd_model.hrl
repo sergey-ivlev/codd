@@ -18,7 +18,7 @@
 -export([from_ext_map/1,        from_ext_map/2,         from_ext_map/3]).
 -export([from_db/1,             from_db/2]).
 
--export([db_table/1, adapter/1]).
+-export([table/1, adapter/1]).
 
 -export([set/3, value/2, fields/2]).
 -export([is_changed/2]).
@@ -120,7 +120,7 @@ to_proplist(Model) ->
 %% --------------------------------------
 %% --------------- DB -------------------
 %% --------------------------------------
-db_table({?MODULE, _Data, _Meta}) ->
-    ?MODULE:db_table().
+table({?MODULE, _Data, _Meta}) ->
+    ?MODULE:table().
 adapter({?MODULE, _Data, _Meta}) ->
     ?MODULE:adapter().

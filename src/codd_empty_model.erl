@@ -15,7 +15,7 @@
 -export([ext_key/1]).
 -export([type/1]).
 
--export([db_table/0, adapter/0]).
+-export([table/0, adapter/0]).
 
 -export([get/1, save/1, save/2, delete/1, find/1]).
 
@@ -53,8 +53,8 @@ is_primary(_) -> false.
 %%% -----------------------------
 %%% ----- MODEL INFO-------------
 %%% -----------------------------
-%% use db_table() for default get/save/find/delete generator
-db_table() -> <<"change_db_table_name_here">>.
+%% use table() for default get/save/find/delete generator
+table() -> <<"change_table_name_here">>.
 adapter() -> codd_postgres.
 
 %%% -----------------------------

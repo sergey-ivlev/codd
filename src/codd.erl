@@ -11,7 +11,7 @@
 -export([get/2, get/3]).
 -export([find/2, find/3]).
 -export([save/1, save/2]).
--export([delete/1, delete/2]).
+-export([delete/1, delete/2, delete/3]).
 -export([count/2, count/3]).
 
 % Connection, ?MODULE, #{id => Id, is_delete => false}
@@ -47,12 +47,15 @@ save(Model, Opts) ->
             Adapter:insert(Model, Opts)
     end.
 
-delete({Module, _,_} = Model) ->
-    Adapter = Module:adapter(),
+delete(Model) ->
+    Adapter = Model:adapter(),
     Adapter:delete(Model).
-delete({Module, _,_} = Model, Opts) ->
-    Adapter = Module:adapter(),
+delete(Model, Opts) ->
+    Adapter = Model:adapter(),
     Adapter:delete(Model, Opts).
+delete(Module, Condition, Opts) ->
+    Adapter = Module:adapter(),
+    Adapter:delete(Module, Condition, Opts).
 
 count(Module, FindCondition) ->
     Adapter = Module:adapter(),

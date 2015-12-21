@@ -54,39 +54,39 @@ is_from_db(Model) ->
 from_proplist(List) ->
     from_proplist(List, new()).
 from_proplist(List, {?MODULE, Data, Meta}) ->
-    from_proplist(List, {?MODULE, Data, Meta}, #{});
+    from_proplist(List, #{}, {?MODULE, Data, Meta});
 from_proplist(List, Opts) ->
-    from_proplist(List, new(), Opts).
-from_proplist(List, Model, Opts) ->
-    codd_model:from_proplist(List, Model, Opts).
+    from_proplist(List, Opts, new()).
+from_proplist(List, Opts, Model) ->
+    codd_model:from_proplist(List, Opts, Model).
 
 from_ext_proplist(List) ->
     from_ext_proplist(List, new()).
 from_ext_proplist(List, {?MODULE, Data, Meta}) ->
-    from_ext_proplist(List, {?MODULE, Data, Meta}, #{});
+    from_ext_proplist(List, #{}, {?MODULE, Data, Meta});
 from_ext_proplist(List, Opts) ->
-    from_ext_proplist(List, new(), Opts).
-from_ext_proplist(List, Model, Opts) ->
-    codd_model:from_ext_proplist(List, Model, Opts).
+    from_ext_proplist(List, Opts, new()).
+from_ext_proplist(List, Opts, Model) ->
+    codd_model:from_ext_proplist(List, Opts, Model).
 
 
 from_map(ExtMap) ->
     from_map(ExtMap, new()).
 from_map(ExtMap, {?MODULE, Data, Meta}) ->
-    from_map(ExtMap, {?MODULE, Data, Meta}, #{});
+    from_map(ExtMap, #{}, {?MODULE, Data, Meta});
 from_map(ExtMap, Opts) ->
-    from_map(ExtMap, new(), Opts).
-from_map(ExtMap, Model, Opts) ->
-    codd_model:from_map(ExtMap, Model, Opts).
+    from_map(ExtMap, Opts, new()).
+from_map(ExtMap, Opts, Model) ->
+    codd_model:from_map(ExtMap, Opts, Model).
 
 from_ext_map(ExtMap) ->
     from_ext_map(ExtMap, new()).
 from_ext_map(ExtMap, {?MODULE, Data, Meta}) ->
-    from_ext_map(ExtMap, {?MODULE, Data, Meta}, #{});
+    from_ext_map(ExtMap, #{}, {?MODULE, Data, Meta});
 from_ext_map(ExtMap, Opts) ->
-    from_ext_map(ExtMap, new(), Opts).
-from_ext_map(ExtMap, Model, Opts) ->
-    codd_model:from_ext_map(ExtMap, Model, Opts).
+    from_ext_map(ExtMap, Opts, new()).
+from_ext_map(ExtMap, Opts, Model) ->
+    codd_model:from_ext_map(ExtMap, Opts, Model).
 
 
 from_db(DBPropList) ->

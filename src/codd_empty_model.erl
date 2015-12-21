@@ -69,7 +69,7 @@ find(Conditions) ->
 
 save(Model) ->
     codd:save(Model).
-save(Model, Opts) ->
+save(Opts, Model) ->
     codd:save(Model, Opts).
 
 delete(Model) ->

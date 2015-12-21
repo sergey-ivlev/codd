@@ -164,10 +164,10 @@ update_model(Key, Value, {Module, Data, #{changed_fields := CF} = Meta}) ->
     {Module, Data2, Meta2}.
 
 %% ---------------------------
-%% from_proplist(List, Model, #{ignore_unknown => true})
+%% from_proplist(List, #{ignore_unknown => true}, Model)
 %% #{ignore_unknown => true} allow ignore unknown keys
 %% ---------------------------
-from_proplist(List, Model, #{ignore_unknown := true}) ->
+from_proplist(List, #{ignore_unknown := true}, Model) ->
     Fun = fun({Key,Value}, {AccModel, Errors}) ->
                case set(Key, Value, AccModel) of
                    {ok, NewModel} ->
@@ -182,7 +182,7 @@ from_proplist(List, Model, #{ignore_unknown := true}) ->
         {Data2, []} -> {ok, Data2};
         {_, Errors} -> {error, Errors}
     end;
-from_proplist(List, Model, _) ->
+from_proplist(List, _, Model) ->
     Fun = fun({Key,Value}, {AccModel, Errors}) ->
                case set(Key, Value, AccModel) of
                    {ok, NewModel} ->
@@ -197,13 +197,13 @@ from_proplist(List, Model, _) ->
     end.
 
 %% ---------------------------
-%% from_ext_proplist(List, Model, #{ignore_unknown => true})
+%% from_ext_proplist(List, #{ignore_unknown => true}, Model)
 %% ignoring:
 %% - undefined bin keys
 %% - trying to write to readonly keys
 %% - undefined model keys
 %% ---------------------------
-from_ext_proplist(List, {Module, _, _} = Model, #{ignore_unknown := true}) ->
+from_ext_proplist(List, #{ignore_unknown := true}, {Module, _, _} = Model) ->
     Fun = fun({BinKey,Value}, {AccModel, Errors}) ->
         case ext_key(BinKey, Module) of
             {ok, Key} ->
@@ -228,7 +228,7 @@ from_ext_proplist(List, {Module, _, _} = Model, #{ignore_unknown := true}) ->
         {Data2, []} -> {ok, Data2};
         {_, Errors} -> {error, Errors}
     end;
-from_ext_proplist(List, {Module, _, _} = Model, _) ->
+from_ext_proplist(List, _, {Module, _, _} = Model) ->
     Fun = fun({BinKey,Value}, {AccModel, Errors}) ->
         case ext_key(BinKey, Module) of
             {ok, Key} ->
@@ -259,11 +259,11 @@ from_db(List, {Module, Data, Meta}) ->
     Data2 = lists:foldl(Fun, Data, List),
     {ok, {Module, Data2, Meta}}.
 
-from_map(Map, Model, Opts) ->
+from_map(Map, Opts, Model) ->
     List = maps:to_list(Map),
     from_proplist(List, Opts, Model).
 
-from_ext_map(Map, Model, Opts) ->
+from_ext_map(Map, Opts, Model) ->
     List = maps:to_list(Map),
     from_ext_proplist(List, Opts, Model).
 
